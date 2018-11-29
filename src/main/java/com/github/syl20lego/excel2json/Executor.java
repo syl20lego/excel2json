@@ -1,4 +1,4 @@
-package com.aldogroup.excel2json;
+package com.github.syl20lego.excel2json;
 
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
