@@ -1,5 +1,6 @@
 package com.github.syl20lego.excel2json;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -8,12 +9,9 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.io.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 public class Executor {
 
@@ -24,8 +22,8 @@ public class Executor {
             dialog.setFilenameFilter((dir, name) -> name.endsWith(".xlsx") || name.endsWith(".xls"));
             dialog.setVisible(true);
             String file = dialog.getFile();
+            String directory = dialog.getDirectory();
             if (file != null) {
-                String directory = dialog.getDirectory();
                 String jsonFile = file.substring(0, file.lastIndexOf(".")) + ".json";
 
                 Workbook workbook = WorkbookFactory.create(new File(directory + file), null, true);
@@ -57,8 +55,11 @@ public class Executor {
 
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.enable(SerializationFeature.INDENT_OUTPUT);
+                mapper.getFactory().configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true);
                 ObjectWriter writer = mapper.writer(new DefaultPrettyPrinter());
-                writer.writeValue(new File(directory + jsonFile), sheets);
+
+                BufferedWriter fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(directory + jsonFile), "Cp1252"));
+                writer.writeValue(fileWriter, sheets);
 
                 // Closing the workbook
                 workbook.close();
@@ -66,16 +67,15 @@ public class Executor {
 
             System.out.println("Done");
         } catch (IOException e) {
+            e.printStackTrace();
             System.out.println("Expecting file xlsx");
         }
     }
 
-    private static Object cellValue(Cell cell) {
+    private static String cellValue(Cell cell) {
         DataFormatter dataFormatter = new DataFormatter();
 
         switch (cell.getCellTypeEnum()) {
-            case BOOLEAN:
-                return cell.getBooleanCellValue();
             case STRING:
                 return cell.getRichStringCellValue().getString();
             case NUMERIC:
@@ -83,9 +83,9 @@ public class Executor {
                     return dataFormatter.formatCellValue(cell);
                 } else {
                     if ((cell.getNumericCellValue() % 1) == 0) {
-                        return Double.valueOf(cell.getNumericCellValue()).intValue();
+                        return Integer.valueOf(Double.valueOf(cell.getNumericCellValue()).intValue()).toString();
                     } else {
-                        return cell.getNumericCellValue();
+                        return Double.valueOf(cell.getNumericCellValue()).toString();
                     }
                 }
             case FORMULA:
