@@ -35,16 +35,15 @@ public class Executor {
                     List<String> header = new ArrayList<>();
                     sheet.forEach(row -> {
                         Map<String, Object> outputRow = new LinkedHashMap<>();
-                        boolean headerRow = header.isEmpty();
-                        row.forEach(cell -> {
-                            if (headerRow) {
+                        if (header.isEmpty()) {
+                            row.forEach(cell -> {
                                 header.add(cell.toString());
-                            } else {
-                                if (cell.toString().length() > 0) {
-                                    outputRow.put(header.get(cell.getColumnIndex() - 1), cellValue(cell));
-                                }
+                            });
+                        } else {
+                            for (int i = 0; i < header.size(); i++) {
+                                outputRow.put(header.get(i), cellValue(row.getCell(i)));
                             }
-                        });
+                        }
                         if (!outputRow.isEmpty()) {
                             list.add(outputRow);
                         }
@@ -73,6 +72,7 @@ public class Executor {
     }
 
     private static String cellValue(Cell cell) {
+        if (cell == null) return "";
         DataFormatter dataFormatter = new DataFormatter();
 
         switch (cell.getCellTypeEnum()) {
