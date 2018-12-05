@@ -50,8 +50,7 @@ private fun writeJson(directory: String?, file: String, sheets: LinkedHashMap<St
 }
 
 fun isNotEmptyRow(row: Row): Boolean {
-    for (cellNum in row.firstCellNum until row.lastCellNum) {
-        val cell = row.getCell(cellNum)
+    row.forEach { cell ->
         if (cell != null &&  cell.cellTypeEnum != CellType.BLANK && cell.toString().isNotEmpty()) {
             return true
         }
